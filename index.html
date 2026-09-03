@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capital-Efficient ETF Suite & Wealth Planner</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #182234;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #34d399;
+            --accent-amber: #fbbf24;
+            --accent-purple: #c084fc;
+            --accent-cyan: #22d3ee;
+            --accent-red: #f87171;
+            --badge-bg: rgba(56, 189, 248, 0.2);
+            --table-header-bg: rgba(255, 255, 255, 0.02);
+            --table-hover-bg: rgba(255, 255, 255, 0.04);
+            --box-bg: #0f172a;
+            --tab-active-bg: #38bdf8;
+            --tab-active-color: #0f172a;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #e2e8f0;
+            --bg-card: #ffffff;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --accent-blue: #0284c7;
+            --accent-green: #059669;
+            --accent-amber: #d97706;
+            --accent-purple: #7c3aed;
+            --accent-cyan: #0891b2;
+            --accent-red: #dc2626;
+            --badge-bg: rgba(2, 132, 199, 0.12);
+            --table-header-bg: rgba(0, 0, 0, 0.04);
+            --table-hover-bg: rgba(0, 0, 0, 0.02);
+            --box-bg: #f8fafc;
+            --tab-active-bg: #0284c7;
+            --tab-active-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1440px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        p.subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .nav-tab-btn {
+            background-color: var(--bg-secondary);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .nav-tab-btn:hover {
+            color: var(--text-main);
+            border-color: var(--accent-blue);
+        }
+
+        .nav-tab-btn.active {
+            background-color: var(--tab-active-bg);
+            color: var(--tab-active-color);
+            border-color: var(--tab-active-bg);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 430px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1080px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        button.btn {
+            background-color: var(--bg-secondary);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        button.btn:hover {
+            border-color: var(--text-muted);
+            filter: brightness(1.1);
+        }
+
+        button.btn-reset {
+            background-color: rgba(248, 113, 113, 0.15);
+            border-color: rgba(248, 113, 113, 0.4);
+            color: var(--accent-red);
+        }
+
+        button.btn-reset:hover {
+            background-color: rgba(248, 113, 113, 0.25);
+            border-color: var(--accent-red);
+        }
+
+        button.btn-primary {
+            background-color: var(--accent-blue);
+            color: #0f172a;
+            border-color: var(--accent-blue);
+            font-weight: 700;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button.btn-primary:hover {
+            filter: brightness(1.15);
+            border-color: var(--accent-blue);
+        }
+
+        .input-group-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 12px 0 8px 0;
+            font-weight: 700;
+        }
+
+        .title-trend { color: var(--accent-blue); }
+        .title-carry { color: var(--accent-purple); }
+        .title-rssb { color: var(--accent-cyan); }
+        .title-collateral { color: var(--accent-amber); }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            width: 165px;
+        }
+
+        .input-label small {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent-blue);
+        }
+
+        input[type="number"], select {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            text-align: right;
+        }
+
+        .wide-input {
+            width: 110px !important;
+        }
+
+        .weight-summary {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 360px;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            text-align: left;
+        }
+
+        .stats-table th, .stats-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .stats-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            background-color: var(--table-header-bg);
+        }
+
+        .stats-table tr:hover td {
+            background-color: var(--table-hover-bg);
+        }
+
+        .table-scroll-container {
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background-color: var(--badge-bg);
+            color: var(--accent-blue);
+            border: 1px solid var(--border-color);
+        }
+
+        .breakdown-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px;
+            background-color: var(--box-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .breakdown-item span:first-child {
+            color: var(--text-muted);
+            display: block;
+        }
+        .breakdown-item span:last-child {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .disabled-row {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        footer {
+            margin-top: 8px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+        footer p + p {
+            margin-top: 8px;
+        }
+        footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Capital-Efficient ETF Suite & Wealth Planner</h1>
+            <p class="subtitle">Empirical Backtest & Monte Carlo Wealth Accumulation Engine (2000 - 2026+)</p>
+        </div>
+        <div class="header-controls">
+            <span class="badge badge-active" id="period_badge">Loading Data...</span>
+            <button class="btn" id="theme_toggle_btn" onclick="toggleTheme()">Theme: Dark</button>
+        </div>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="nav-tab-btn active" id="tab_btn_backtest" onclick="switchTab('backtest')">Historical Backtest (2000–2026)</button>
+        <button class="nav-tab-btn" id="tab_btn_future" onclick="switchTab('future')">Future Wealth Planner (2026+)</button>
+    </div>
+
+    <!-- TAB 1: HISTORICAL BACKTEST -->
+    <div id="tab_backtest" class="tab-content active">
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">
+                    <span>Efficient Frontier Presets</span>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" onclick="applyPreset('min_vol')">Global Min Vol</button>
+                    <button class="btn" onclick="applyPreset('max_sharpe')">Max Sharpe (Tangency)</button>
+                    <button class="btn" onclick="applyPreset('mod_growth')">Moderate Growth</button>
+                    <button class="btn" onclick="applyPreset('agg_growth')">Aggressive Growth</button>
+                    <button class="btn" onclick="applyPreset('more_agg')">More Aggressive (85/15)</button>
+                    <button class="btn" onclick="applyPreset('max_terminal')">Max Terminal (100% Eq)</button>
+                    <button class="btn btn-reset" onclick="applyPreset('reset_zero')">Reset (0%)</button>
+                </div>
+
+                <div class="input-group-title title-trend">Trend Overlay Suite (0.95% Fee)</div>
+                <div class="input-row">
+                    <div class="input-label">RSST <small>US Equity + Trend</small></div>
+                    <input type="range" id="rsst_slider" min="0" max="100" value="0" oninput="sync('rsst', this.value)">
+                    <input type="number" id="rsst_num" min="0" max="100" value="0" oninput="sync('rsst', this.value)">
+                </div>
+                <div class="input-row">
+                    <div class="input-label">RSIT <small>Intl Equity + Trend</small></div>
+                    <input type="range" id="rsit_slider" min="0" max="100" value="0" oninput="sync('rsit', this.value)">
+                    <input type="number" id="rsit_num" min="0" max="100" value="0" oninput="sync('rsit', this.value)">
+                </div>
+                <div class="input-row">
+                    <div class="input-label">RSBT <small>7-10Y Bond + Trend</small></div>
+                    <input type="range" id="rsbt_slider" min="0" max="100" value="0" oninput="sync('rsbt', this.value)">
+                    <input type="number" id="rsbt_num" min="0" max="100" value="0" oninput="sync('rsbt', this.value)">
+                </div>
+
+                <div class="input-group-title title-carry">Carry Overlay Suite (0.95% Fee)</div>
+                <div class="input-row">
+                    <div class="input-label">RSSY <small>US Equity + Carry</small></div>
+                    <input type="range" id="rssy_slider" min="0" max="100" value="0" oninput="sync('rssy', this.value)">
+                    <input type="number" id="rssy_num" min="0" max="100" value="0" oninput="sync('rssy', this.value)">
+                </div>
+                <div class="input-row">
+                    <div class="input-label">RSBY <small>7-10Y Bond + Carry</small></div>
+                    <input type="range" id="rsby_slider" min="0" max="100" value="0" oninput="sync('rsby', this.value)">
+                    <input type="number" id="rsby_num" min="0" max="100" value="0" oninput="sync('rsby', this.value)">
+                </div>
+
+                <div class="input-group-title title-rssb">Global Stock & Bond Stack (0.54% Fee)</div>
+                <div class="input-row">
+                    <div class="input-label">RSSB <small>Global Eq + 10Y Bond</small></div>
+                    <input type="range" id="rssb_slider" min="0" max="100" value="0" oninput="sync('rssb', this.value)">
+                    <input type="number" id="rssb_num" min="0" max="100" value="0" oninput="sync('rssb', this.value)">
+                </div>
+
+                <div class="input-group-title title-collateral">Unstacked Collateral</div>
+                <div class="input-row">
+                    <div class="input-label">SPY <small>S&P 500 (0.03% Fee)</small></div>
+                    <input type="range" id="spy_slider" min="0" max="100" value="0" oninput="sync('spy', this.value)">
+                    <input type="number" id="spy_num" min="0" max="100" value="0" oninput="sync('spy', this.value)">
+                </div>
+                <div class="input-row">
+                    <div class="input-label">VEA <small>Dev Intl (0.06% Fee)</small></div>
+                    <input type="range" id="vea_slider" min="0" max="100" value="0" oninput="sync('vea', this.value)">
+                    <input type="number" id="vea_num" min="0" max="100" value="0" oninput="sync('vea', this.value)">
+                </div>
+                <div class="input-row">
+                    <div class="input-label">IEF <small>7-10Y Bond (0.15% Fee)</small></div>
+                    <input type="range" id="ief_slider" min="0" max="100" value="0" oninput="sync('ief', this.value)">
+                    <input type="number" id="ief_num" min="0" max="100" value="0" oninput="sync('ief', this.value)">
+                </div>
+                <div class="input-row">
+                    <div class="input-label">CASH <small>3-Mo T-Bills (^IRX)</small></div>
+                    <input type="range" id="cash_slider" min="0" max="100" value="0" oninput="sync('cash', this.value)">
+                    <input type="number" id="cash_num" min="0" max="100" value="0" oninput="sync('cash', this.value)">
+                </div>
+
+                <div class="weight-summary">
+                    <span>Total Allocation:</span>
+                    <span id="total_weight_display">0%</span>
+                </div>
+
+                <div class="breakdown-box">
+                    <div class="breakdown-item">
+                        <span>Base Collateral:</span>
+                        <span id="collateral_split_display">0% Allocated</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Overlay Allocation:</span>
+                        <span id="overlay_split_display">0% Allocated</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Gross Exposure:</span>
+                        <span id="gross_exp_display">0%</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Weighted Fee Drag:</span>
+                        <span id="fee_display">0.00%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="card-title">
+                        <span>Cumulative Growth ($10,000 Initial)</span>
+                        <div>
+                            <button class="btn" onclick="toggleLogScale('backtest')">Toggle Log/Linear</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+
+                    <div class="card-title" style="margin-top: 10px;">
+                        <span>Underwater Drawdown Profile</span>
+                    </div>
+                    <div class="chart-container" style="height: 160px;">
+                        <canvas id="drawdownChart"></canvas>
+                    </div>
+
+                    <div class="card-title" style="margin-top: 16px;">
+                        <span>Performance Breakdown (Historical 2000–2026)</span>
+                    </div>
+                    <table class="stats-table" style="margin-bottom: 16px;">
+                        <thead>
+                            <tr>
+                                <th>Strategy</th>
+                                <th>Ending Value</th>
+                                <th>CAGR</th>
+                                <th>Max Drawdown</th>
+                                <th>Volatility</th>
+                                <th>Sharpe</th>
+                                <th>Sortino</th>
+                                <th>Ulcer Index</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stats_tbody"></tbody>
+                    </table>
+
+                    <div class="card-title" style="margin-top: 16px;">
+                        <span>Calendar Year-by-Year Returns (Historical)</span>
+                    </div>
+                    <div class="table-scroll-container">
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Custom Stacked Portfolio</th>
+                                    <th>Baseline 60/40</th>
+                                    <th>Baseline 69/31 Global Eq</th>
+                                </tr>
+                            </thead>
+                            <tbody id="annual_returns_tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: FUTURE WEALTH PLANNER -->
+    <div id="tab_future" class="tab-content">
+        <div class="grid">
+            <div>
+                <!-- Future Planning Inputs Card -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Contribution, Withdrawal & Horizon</span>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">Current Balance ($) <small>Starting Portfolio</small></div>
+                        <input type="number" id="f_start_bal" class="wide-input" min="0" step="1000" value="50000" onchange="runFutureSimulation()">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">Monthly Contribution ($) <small>Recurring Savings</small></div>
+                        <input type="number" id="f_monthly_contrib" class="wide-input" min="0" step="100" value="1000" onchange="runFutureSimulation()">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">Contribution Growth <small>Annual Savings Escalation</small></div>
+                        <select id="f_contrib_escalation" style="flex: 1;" onchange="handleEscalationChange('contrib')">
+                            <option value="0.0">0.0% (Flat Nominal)</option>
+                            <option value="0.025">2.5% (Inflation-Matched)</option>
+                            <option value="0.035" selected>3.5% (Inflation + 1%)</option>
+                            <option value="0.045">4.5% (Inflation + 2%)</option>
+                            <option value="0.055">5.5% (Inflation + 3%)</option>
+                            <option value="custom">Custom Rate...</option>
+                        </select>
+                        <input type="number" id="f_custom_contrib" style="width: 50px; display: none;" min="0" max="25" step="0.5" value="3.5" onchange="runFutureSimulation()">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">Investment Horizon <small id="f_horizon_label">40 Years (2026–2066)</small></div>
+                        <input type="range" id="f_horizon_slider" min="5" max="150" value="40" oninput="syncInvestHorizon(this.value)">
+                        <input type="number" id="f_horizon_num" min="5" max="150" value="40" oninput="syncInvestHorizon(this.value)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">Contribution Horizon <small id="f_contrib_horizon_label">Years 1–25 (2026–2051)</small></div>
+                        <input type="range" id="f_contrib_horizon_slider" min="0" max="40" value="25" oninput="syncContribHorizon(this.value)">
+                        <input type="number" id="f_contrib_horizon_num" min="0" max="40" value="25" oninput="syncContribHorizon(this.value)">
+                    </div>
+
+                    <!-- Withdrawal Mode Toggle -->
+                    <div class="input-row">
+                        <div class="input-label">Withdrawal Method <small>Fixed $ vs % SWR</small></div>
+                        <select id="f_withdraw_mode" style="flex: 1;" onchange="handleWithdrawalModeChange()">
+                            <option value="fixed" selected>Fixed Dollar ($ / Month)</option>
+                            <option value="pct">Percentage of Portfolio (% Annual SWR)</option>
+                        </select>
+                    </div>
+
+                    <!-- Row A: Fixed Dollar Amount Input -->
+                    <div class="input-row" id="row_withdraw_fixed">
+                        <div class="input-label">Monthly Withdrawal ($) <small id="f_withdraw_start_label_fixed">Starts in Year 26 (2051)</small></div>
+                        <input type="number" id="f_monthly_withdraw" class="wide-input" min="0" step="100" value="3000" onchange="runFutureSimulation()">
+                    </div>
+
+                    <!-- Row B: Percentage SWR Dropdown & Custom Field -->
+                    <div class="input-row" id="row_withdraw_pct" style="display: none;">
+                        <div class="input-label">Annual SWR (%) <small id="f_withdraw_start_label_pct">Starts in Year 26 (2051)</small></div>
+                        <select id="f_withdraw_pct_select" style="flex: 1;" onchange="handleWithdrawPctChange()">
+                            <option value="0.030">3.0% (Conservative SWR)</option>
+                            <option value="0.0325">3.25% (Preservation SWR)</option>
+                            <option value="0.035" selected>3.5% (Moderate SWR)</option>
+                            <option value="0.040">4.0% (Classic 4% Rule)</option>
+                            <option value="0.045">4.5% (Upper Range SWR)</option>
+                            <option value="0.050">5.0% (High Cash Flow)</option>
+                            <option value="custom">Custom Rate...</option>
+                        </select>
+                        <input type="number" id="f_custom_withdraw_pct" style="width: 55px; display: none;" min="0.1" max="25" step="0.1" value="3.5" onchange="runFutureSimulation()">
+                    </div>
+
+                    <!-- Row C: Withdrawal Growth (Disabled in Pct Mode) -->
+                    <div class="input-row" id="row_withdraw_growth">
+                        <div class="input-label">Withdrawal Growth <small id="f_withdraw_growth_sub">Inflation Adjustment</small></div>
+                        <select id="f_withdraw_escalation" style="flex: 1;" onchange="handleEscalationChange('withdraw')">
+                            <option value="0.0">0.0% (Flat Nominal)</option>
+                            <option value="0.025" selected>2.5% (Inflation-Matched)</option>
+                            <option value="0.030">3.0% (Inflation + 0.5%)</option>
+                            <option value="0.035">3.5% (Inflation + 1%)</option>
+                            <option value="0.045">4.5% (Inflation + 2%)</option>
+                            <option value="custom">Custom Rate...</option>
+                        </select>
+                        <input type="number" id="f_custom_withdraw" style="width: 50px; display: none;" min="0" max="25" step="0.5" value="2.5" onchange="runFutureSimulation()">
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-label">Expected Return Calibration <small>Forward 30-Yr Drift</small></div>
+                        <select id="f_cma_model" style="flex: 1;" onchange="runFutureSimulation()">
+                            <option value="cma_moderate" selected>Institutional Forward CMAs (~8.5% Central)</option>
+                            <option value="cma_conservative">Conservative Forward (~7.2% Central)</option>
+                            <option value="historical">Unadjusted Historical Resampling (~12.1% Central)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="runFutureSimulation()">
+                        &#x21bb; Run Monte Carlo Simulation (1,000 Paths)
+                    </button>
+                </div>
+
+                <!-- Future Allocation Controls Card -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Portfolio Allocation (Planner)</span>
+                        <button class="btn" onclick="copyAllocationFromBacktest()">Copy from Backtest</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="applyFuturePreset('min_vol')">Global Min Vol</button>
+                        <button class="btn" onclick="applyFuturePreset('max_sharpe')">Max Sharpe</button>
+                        <button class="btn" onclick="applyFuturePreset('mod_growth')">Moderate</button>
+                        <button class="btn" onclick="applyFuturePreset('agg_growth')">Aggressive</button>
+                        <button class="btn" onclick="applyFuturePreset('more_agg')">85/15 Stack</button>
+                        <button class="btn" onclick="applyFuturePreset('max_terminal')">100% Eq Stack</button>
+                        <button class="btn btn-reset" onclick="applyFuturePreset('reset_zero')">Reset (0%)</button>
+                    </div>
+
+                    <div class="input-group-title title-trend">Trend Overlay Suite (0.95% Fee)</div>
+                    <div class="input-row">
+                        <div class="input-label">RSST <small>US Equity + Trend</small></div>
+                        <input type="range" id="f_rsst_slider" min="0" max="100" value="59" oninput="syncFuture('rsst', this.value)">
+                        <input type="number" id="f_rsst_num" min="0" max="100" value="59" oninput="syncFuture('rsst', this.value)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">RSIT <small>Intl Equity + Trend</small></div>
+                        <input type="range" id="f_rsit_slider" min="0" max="100" value="26" oninput="syncFuture('rsit', this.value)">
+                        <input type="number" id="f_rsit_num" min="0" max="100" value="26" oninput="syncFuture('rsit', this.value)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">RSBT <small>7-10Y Bond + Trend</small></div>
+                        <input type="range" id="f_rsbt_slider" min="0" max="100" value="15" oninput="syncFuture('rsbt', this.value)">
+                        <input type="number" id="f_rsbt_num" min="0" max="100" value="15" oninput="syncFuture('rsbt', this.value)">
+                    </div>
+
+                    <div class="input-group-title title-carry">Carry Overlay Suite (0.95% Fee)</div>
+                    <div class="input-row">
+                        <div class="input-label">RSSY <small>US Equity + Carry</small></div>
+                        <input type="range" id="f_rssy_slider" min="0" max="100" value="0" oninput="syncFuture('rssy', this.value)">
+                        <input type="number" id="f_rssy_num" min="0" max="100" value="0" oninput="syncFuture('rssy', this.value)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">RSBY <small>7-10Y Bond + Carry</small></div>
+                        <input type="range" id="f_rsby_slider" min="0" max="100" value="0" oninput="syncFuture('rsby', this.value)">
+                        <input type="number" id="f_rsby_num" min="0" max="100" value="0" oninput="syncFuture('rsby', this.value)">
+                    </div>
+
+                    <div class="input-group-title title-rssb">Global Stock & Bond Stack (0.54% Fee)</div>
+                    <div class="input-row">
+                        <div class="input-label">RSSB <small>Global Eq + 10Y Bond</small></div>
+                        <input type="range" id="f_rssb_slider" min="0" max="100" value="0" oninput="syncFuture('rssb', this.value)">
+                        <input type="number" id="f_rssb_num" min="0" max="100" value="0" oninput="syncFuture('rssb', this.value)">
+                    </div>
+
+                    <div class="input-group-title title-collateral">Unstacked Collateral</div>
+                    <div class="input-row">
+                        <div class="input-label">SPY <small>S&P 500 (0.03% Fee)</small></div>
+                        <input type="range" id="f_spy_slider" min="0" max="100" value="0" oninput="syncFuture('spy', this.value)">
+                        <input type="number" id="f_spy_num" min="0" max="100" value="0" oninput="syncFuture('spy', this.value)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">VEA <small>Dev Intl (0.06% Fee)</small></div>
+                        <input type="range" id="f_vea_slider" min="0" max="100" value="0" oninput="syncFuture('vea', this.value)">
+                        <input type="number" id="f_vea_num" min="0" max="100" value="0" oninput="syncFuture('vea', this.value)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">IEF <small>7-10Y Bond (0.15% Fee)</small></div>
+                        <input type="range" id="f_ief_slider" min="0" max="100" value="0" oninput="syncFuture('ief', this.value)">
+                        <input type="number" id="f_ief_num" min="0" max="100" value="0" oninput="syncFuture('ief', this.value)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-label">CASH <small>3-Mo T-Bills (^IRX)</small></div>
+                        <input type="range" id="f_cash_slider" min="0" max="100" value="0" oninput="syncFuture('cash', this.value)">
+                        <input type="number" id="f_cash_num" min="0" max="100" value="0" oninput="syncFuture('cash', this.value)">
+                    </div>
+
+                    <div class="weight-summary">
+                        <span>Total Allocation:</span>
+                        <span id="f_total_weight_display">100%</span>
+                    </div>
+
+                    <div class="breakdown-box">
+                        <div class="breakdown-item">
+                            <span>Base Collateral:</span>
+                            <span id="f_collateral_split_display">85% Eq / 15% Bnd</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Overlay Allocation:</span>
+                            <span id="f_overlay_split_display">100% Tr / 0% Cy</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Gross Exposure:</span>
+                            <span id="f_gross_exp_display">200%</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Weighted Fee Drag:</span>
+                            <span id="f_fee_display">0.95%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="card-title">
+                        <span>Cumulative Wealth Growth (Monte Carlo Scenarios)</span>
+                        <div>
+                            <button class="btn" onclick="toggleLogScale('future')">Toggle Log/Linear</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="futureGrowthChart"></canvas>
+                    </div>
+
+                    <div class="card-title" style="margin-top: 10px;">
+                        <span>Underwater Drawdown Profile (By Scenario)</span>
+                    </div>
+                    <div class="chart-container" style="height: 170px;">
+                        <canvas id="futureDrawdownChart"></canvas>
+                    </div>
+
+                    <div class="card-title" style="margin-top: 16px;">
+                        <span>Performance & Scenario Breakdown (Forward Projections)</span>
+                    </div>
+                    <table class="stats-table" style="margin-bottom: 16px;">
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Ending Balance</th>
+                                <th>Total Contributed</th>
+                                <th>Total Withdrawn</th>
+                                <th>Net Investment Gain</th>
+                                <th>MWRR (IRR)</th>
+                                <th>Max Drawdown</th>
+                            </tr>
+                        </thead>
+                        <tbody id="future_stats_tbody"></tbody>
+                    </table>
+
+                    <div class="card-title" style="margin-top: 16px;">
+                        <span>Calendar Year-by-Year Returns (Monte Carlo Scenarios)</span>
+                    </div>
+                    <div class="table-scroll-container">
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Prolonged Bull (95th)</th>
+                                    <th>Bull (75th)</th>
+                                    <th>Central Estimate (50th)</th>
+                                    <th>Bear (25th)</th>
+                                    <th>Prolonged Bear (5th)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="future_annual_returns_tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p><strong>Educational & Research Disclaimer:</strong> This quantitative backtest and simulation engine is strictly for academic, research, and educational purposes. It does not constitute financial, investment, legal, or tax advice. Simulated and forward Monte Carlo projections are hypothetical, rely on empirical resampling and spliced historical proxies, and do not reflect actual trading results or guarantee future returns.</p>
+        <p><strong>Trademark Notice & Data Attribution:</strong> "Return Stacked" is a registered trademark of ReSolve Asset Management and Newfound Research. This independent simulation tool references publicly traded tickers under nominative fair use and is not affiliated with, sponsored by, or endorsed by ReSolve Asset Management, Newfound Research, or Simplify Asset Management. Trend overlay series sourced from the <a href="https://wholesale.banking.societegenerale.com/fileadmin/indices_feeds/ti_screen/index.html" target="_blank" rel="noopener">Societe Generale Trend Index</a>. Multi-asset carry overlay sourced from <a href="https://www.aqr.com/Insights/Datasets/Century-of-Factor-Premia-Monthly" target="_blank" rel="noopener">AQR Capital Management's Century of Factor Premia dataset</a>. Baseline collateral pricing sourced from Yahoo Finance.</p>
+    </footer>
+</div>
+
+<script src="market_data.js"></script>
+<script>
+let DATES = [];
+let SPY_M = [], VEA_M = [], IEF_M = [], CASH_M = [], TREND_M = [], CARRY_M = [];
+
+const TICKERS = ['rsst', 'rsit', 'rsbt', 'rssy', 'rsby', 'rssb', 'spy', 'vea', 'ief', 'cash'];
+
+// Tab 1 (Backtest) state
+let weights = {
+    rsst: 0, rsit: 0, rsbt: 0,
+    rssy: 0, rsby: 0,
+    rssb: 0,
+    spy: 0, vea: 0, ief: 0, cash: 0
+};
+
+// Tab 2 (Future Planner) state - default to 85/15 Stack
+let futureWeights = {
+    rsst: 59, rsit: 26, rsbt: 15,
+    rssy: 0, rsby: 0,
+    rssb: 0,
+    spy: 0, vea: 0, ief: 0, cash: 0
+};
+
+const FEES = {
+    rsst: 0.0095, rsit: 0.0095, rsbt: 0.0095,
+    rssy: 0.0095, rsby: 0.0095,
+    rssb: 0.0054,
+    spy: 0.0003, vea: 0.0006, ief: 0.0015, cash: 0.0000
+};
+
+let currentTheme = 'dark';
+let isBacktestLog = true;
+let isFutureLog = true;
+
+let growthChartInstance = null;
+let drawdownChartInstance = null;
+let futureGrowthChartInstance = null;
+let futureDrawdownChartInstance = null;
+
+let activeTab = 'backtest';
+
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof MARKET_DATA !== 'undefined') {
+        DATES = MARKET_DATA.dates;
+        SPY_M = MARKET_DATA.SPY_BP.map(bp => bp / 10000);
+        VEA_M = MARKET_DATA.VEA_BP.map(bp => bp / 10000);
+        IEF_M = MARKET_DATA.IEF_BP.map(bp => bp / 10000);
+        CASH_M = MARKET_DATA.CASH_BP.map(bp => bp / 10000);
+        TREND_M = MARKET_DATA.TREND_BP.map(bp => bp / 10000);
+        CARRY_M = MARKET_DATA.CARRY_BP ? MARKET_DATA.CARRY_BP.map(bp => bp / 10000) : TREND_M;
+
+        document.getElementById('period_badge').innerText = `${DATES.length} Months (${DATES[0]} to ${DATES[DATES.length-1]})`;
+        updateAnalysis();
+        runFutureSimulation();
+    } else {
+        alert("market_data.js failed to load. Ensure market_data.js is in the same folder.");
+    }
+});
+
+// TAB SWITCHING
+function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+    document.getElementById(`tab_btn_${tab}`).classList.add('active');
+    document.getElementById(`tab_${tab}`).classList.add('active');
+
+    if (tab === 'backtest') {
+        if (growthChartInstance) growthChartInstance.resize();
+        if (drawdownChartInstance) drawdownChartInstance.resize();
+    } else if (tab === 'future') {
+        if (futureGrowthChartInstance) futureGrowthChartInstance.resize();
+        if (futureDrawdownChartInstance) futureDrawdownChartInstance.resize();
+    }
+}
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    const btn = document.getElementById('theme_toggle_btn');
+    if (btn) btn.innerText = `Theme: ${currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1)}`;
+    updateAnalysis();
+    runFutureSimulation();
+}
+
+function toggleLogScale(mode) {
+    if (mode === 'backtest') {
+        isBacktestLog = !isBacktestLog;
+        if (growthChartInstance) {
+            growthChartInstance.options.scales.y.type = isBacktestLog ? 'logarithmic' : 'linear';
+            growthChartInstance.update();
+        }
+    } else if (mode === 'future') {
+        isFutureLog = !isFutureLog;
+        if (futureGrowthChartInstance) {
+            futureGrowthChartInstance.options.scales.y.type = isFutureLog ? 'logarithmic' : 'linear';
+            futureGrowthChartInstance.update();
+        }
+    }
+}
+
+// -------------------------------------------------------------
+// TAB 1: BACKTEST LOGIC
+// -------------------------------------------------------------
+function sync(ticker, val) {
+    val = Math.max(0, Math.min(100, parseInt(val) || 0));
+    const slider = document.getElementById(`${ticker}_slider`);
+    const num = document.getElementById(`${ticker}_num`);
+    if (slider) slider.value = val;
+    if (num) num.value = val;
+    weights[ticker] = val;
+    updateAnalysis();
+}
+
+function applyPreset(preset) {
+    TICKERS.forEach(t => weights[t] = 0);
+
+    if (preset === 'min_vol') {
+        weights.rsbt = 31; weights.rsby = 46; weights.rssb = 19; weights.rssy = 4;
+    } else if (preset === 'max_sharpe') {
+        weights.rsst = 6; weights.rsbt = 34; weights.rsby = 23; weights.rssb = 35; weights.rssy = 2;
+    } else if (preset === 'mod_growth') {
+        weights.rsst = 11; weights.rsbt = 38; weights.rsby = 2; weights.rssb = 49;
+    } else if (preset === 'agg_growth') {
+        weights.rsst = 31; weights.rsit = 9; weights.rsbt = 17; weights.rssb = 43;
+    } else if (preset === 'more_agg') {
+        weights.rsst = 59; weights.rsit = 26; weights.rsbt = 15;
+    } else if (preset === 'max_terminal') {
+        weights.rsst = 69; weights.rsit = 31;
+    }
+
+    TICKERS.forEach(t => {
+        const slider = document.getElementById(`${t}_slider`);
+        const num = document.getElementById(`${t}_num`);
+        if (slider) slider.value = weights[t];
+        if (num) num.value = weights[t];
+    });
+
+    updateAnalysis();
+}
+
+function calculatePortfolioSeries(w) {
+    const sumW = Object.values(w).reduce((a, b) => a + b, 0);
+
+    if (sumW === 0) {
+        return {
+            isAllocated: false,
+            monthlyReturns: new Array(DATES.length).fill(0),
+            values: new Array(DATES.length + 1).fill(10000),
+            drawdowns: new Array(DATES.length + 1).fill(0)
+        };
+    }
+
+    const nw = {};
+    for (let k of TICKERS) nw[k] = (w[k] || 0) / sumW;
+
+    const monthlyReturns = [];
+    const values = [10000];
+    const drawdowns = [0];
+    let peak = 10000;
+
+    for (let i = 0; i < DATES.length; i++) {
+        const r_rsst = SPY_M[i] + TREND_M[i] - (FEES.rsst / 12);
+        const r_rsit = VEA_M[i] + TREND_M[i] - (FEES.rsit / 12);
+        const r_rsbt = IEF_M[i] + TREND_M[i] - (FEES.rsbt / 12);
+
+        const r_rssy = SPY_M[i] + CARRY_M[i] - (FEES.rssy / 12);
+        const r_rsby = IEF_M[i] + CARRY_M[i] - (FEES.rsby / 12);
+
+        const r_rssb = (0.62 * SPY_M[i] + 0.38 * VEA_M[i]) + IEF_M[i] - (FEES.rssb / 12);
+
+        const r_spy = SPY_M[i] - (FEES.spy / 12);
+        const r_vea = VEA_M[i] - (FEES.vea / 12);
+        const r_ief = IEF_M[i] - (FEES.ief / 12);
+        const r_cash = CASH_M[i];
+
+        const r_total = (nw.rsst * r_rsst) +
+                        (nw.rsit * r_rsit) +
+                        (nw.rsbt * r_rsbt) +
+                        (nw.rssy * r_rssy) +
+                        (nw.rsby * r_rsby) +
+                        (nw.rssb * r_rssb) +
+                        (nw.spy * r_spy) +
+                        (nw.vea * r_vea) +
+                        (nw.ief * r_ief) +
+                        (nw.cash * r_cash);
+
+        monthlyReturns.push(r_total);
+        const nextVal = values[values.length - 1] * (1 + r_total);
+        values.push(nextVal);
+
+        if (nextVal > peak) peak = nextVal;
+        drawdowns.push(((nextVal - peak) / peak) * 100);
+    }
+
+    return { isAllocated: true, monthlyReturns, values, drawdowns };
+}
+
+function calculateBenchmark6040() {
+    const values = [10000];
+    const drawdowns = [0];
+    let peak = 10000;
+    const monthlyReturns = [];
+
+    for (let i = 0; i < DATES.length; i++) {
+        const r = (0.60 * (SPY_M[i] - 0.0003/12)) + (0.40 * (IEF_M[i] - 0.0015/12));
+        monthlyReturns.push(r);
+
+        const nextVal = values[values.length - 1] * (1 + r);
+        values.push(nextVal);
+
+        if (nextVal > peak) peak = nextVal;
+        drawdowns.push(((nextVal - peak) / peak) * 100);
+    }
+
+    return { monthlyReturns, values, drawdowns };
+}
+
+function calculateBenchmarkGlobalEq() {
+    const values = [10000];
+    const drawdowns = [0];
+    let peak = 10000;
+    const monthlyReturns = [];
+
+    for (let i = 0; i < DATES.length; i++) {
+        const r = (0.69 * (SPY_M[i] - 0.0003/12)) + (0.31 * (VEA_M[i] - 0.0006/12));
+        monthlyReturns.push(r);
+
+        const nextVal = values[values.length - 1] * (1 + r);
+        values.push(nextVal);
+
+        if (nextVal > peak) peak = nextVal;
+        drawdowns.push(((nextVal - peak) / peak) * 100);
+    }
+
+    return { monthlyReturns, values, drawdowns };
+}
+
+function computeStats(series) {
+    if (series.isAllocated === false) {
+        return {
+            isAllocated: false,
+            endingValue: 10000,
+            cagr: 0,
+            maxDrawdown: 0,
+            volatility: 0,
+            sharpe: 0,
+            sortino: 0,
+            ulcer: 0
+        };
+    }
+
+    const endVal = series.values[series.values.length - 1];
+    const years = DATES.length / 12;
+    const cagr = Math.pow(endVal / 10000, 1 / years) - 1;
+
+    const mean = series.monthlyReturns.reduce((a, b) => a + b, 0) / DATES.length;
+    const variance = series.monthlyReturns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (DATES.length - 1);
+    const annVol = Math.sqrt(variance) * Math.sqrt(12);
+
+    const downsideVar = series.monthlyReturns.reduce((a, b) => b < 0 ? a + Math.pow(b, 2) : a, 0) / DATES.length;
+    const sortinoVol = Math.sqrt(downsideVar) * Math.sqrt(12);
+
+    let minDD = 0;
+    let sumSquaredDD = 0;
+    for (let dd of series.drawdowns) {
+        if (dd < minDD) minDD = dd;
+        sumSquaredDD += Math.pow(dd, 2);
+    }
+    const ulcerIndex = Math.sqrt(sumSquaredDD / series.drawdowns.length);
+
+    const cashMean = CASH_M.reduce((a, b) => a + b, 0) / CASH_M.length;
+    const cashAnn = cashMean * 12;
+
+    const sharpe = (cagr - cashAnn) / annVol;
+    const sortino = (cagr - cashAnn) / (sortinoVol || 0.0001);
+
+    return {
+        isAllocated: true,
+        endingValue: endVal,
+        cagr: cagr * 100,
+        maxDrawdown: minDD,
+        volatility: annVol * 100,
+        sharpe: sharpe,
+        sortino: sortino,
+        ulcer: ulcerIndex
+    };
+}
+
+function updateAnalysis() {
+    if (!DATES.length) return;
+
+    const totalW = Object.values(weights).reduce((a, b) => a + b, 0);
+    const denom = totalW || 1;
+
+    const weightEl = document.getElementById('total_weight_display');
+    if (weightEl) {
+        weightEl.innerText = `${totalW}%`;
+        weightEl.style.color = totalW === 100 ? 'var(--accent-green)' : (totalW === 0 ? 'var(--text-muted)' : 'var(--accent-red)');
+    }
+
+    const colEl = document.getElementById('collateral_split_display');
+    const overEl = document.getElementById('overlay_split_display');
+    const grossEl = document.getElementById('gross_exp_display');
+    const feeEl = document.getElementById('fee_display');
+
+    if (totalW === 0) {
+        if (colEl) colEl.innerText = '0% Allocated';
+        if (overEl) overEl.innerText = '0% Allocated';
+        if (grossEl) grossEl.innerText = '0%';
+        if (feeEl) feeEl.innerText = '0.00%';
+    } else {
+        const usEq = (weights.rsst || 0) + (weights.spy || 0) + (weights.rssy || 0) + ((weights.rssb || 0) * 0.62);
+        const intlEq = (weights.rsit || 0) + (weights.vea || 0) + ((weights.rssb || 0) * 0.38);
+        const eqExp = ((usEq + intlEq) / denom) * 100;
+        const bndExp = (((weights.rsbt || 0) + (weights.ief || 0) + (weights.rsby || 0) + (weights.rssb || 0)) / denom) * 100;
+        const cashExp = ((weights.cash || 0) / denom) * 100;
+
+        const trendExp = (((weights.rsst || 0) + (weights.rsit || 0) + (weights.rsbt || 0)) / denom) * 100;
+        const carryExp = (((weights.rssy || 0) + (weights.rsby || 0)) / denom) * 100;
+        const totalOverlay = trendExp + carryExp;
+
+        const grossExp = eqExp + bndExp + cashExp + totalOverlay;
+
+        let weightedFee = 0;
+        for (let k of TICKERS) {
+            weightedFee += ((weights[k] || 0) / denom) * (FEES[k] || 0);
+        }
+
+        if (colEl) {
+            colEl.innerText = `${Math.round(eqExp)}% Eq / ${Math.round(bndExp)}% Bnd${cashExp > 0.5 ? ' / ' + Math.round(cashExp) + '% Csh' : ''}`;
+        }
+
+        if (overEl) {
+            if (totalOverlay < 0.5) {
+                overEl.innerText = 'None (0%)';
+            } else {
+                overEl.innerText = `${Math.round(trendExp)}% Tr / ${Math.round(carryExp)}% Cy`;
+            }
+        }
+
+        if (grossEl) grossEl.innerText = `${Math.round(grossExp)}%`;
+        if (feeEl) feeEl.innerText = `${(weightedFee * 100).toFixed(2)}%`;
+    }
+
+    const portfolioSeries = calculatePortfolioSeries(weights);
+    const bench6040Series = calculateBenchmark6040();
+    const benchGlobalEqSeries = calculateBenchmarkGlobalEq();
+
+    const pStats = computeStats(portfolioSeries);
+    const b6040Stats = computeStats(bench6040Series);
+    const bGlobalEqStats = computeStats(benchGlobalEqSeries);
+
+    renderStatsTable(pStats, b6040Stats, bGlobalEqStats);
+    renderAnnualReturnsTable(portfolioSeries, bench6040Series, benchGlobalEqSeries);
+    renderCharts(portfolioSeries, bench6040Series, benchGlobalEqSeries);
+}
+
+function renderStatsTable(p, b6040, bGlobalEq) {
+    const tbody = document.getElementById('stats_tbody');
+    if (!tbody) return;
+
+    let pRow = '';
+    if (!p.isAllocated) {
+        pRow = `
+            <tr>
+                <td><strong style="color: var(--accent-blue);">Custom Stacked Portfolio</strong> <small style="color: var(--text-muted); font-weight: normal;">(Unallocated)</small></td>
+                <td>$10,000</td>
+                <td style="color: var(--text-muted);">0.00%</td>
+                <td style="color: var(--text-muted);">0.00%</td>
+                <td>0.00%</td>
+                <td>0.00</td>
+                <td>0.00</td>
+                <td>0.00</td>
+            </tr>
+        `;
+    } else {
+        pRow = `
+            <tr>
+                <td><strong style="color: var(--accent-blue);">Custom Stacked Portfolio</strong></td>
+                <td>$${Math.round(p.endingValue).toLocaleString()}</td>
+                <td style="color: var(--accent-green); font-weight: 700;">${p.cagr.toFixed(2)}%</td>
+                <td style="color: var(--accent-red); font-weight: 600;">${p.maxDrawdown.toFixed(2)}%</td>
+                <td>${p.volatility.toFixed(2)}%</td>
+                <td><strong>${p.sharpe.toFixed(2)}</strong></td>
+                <td>${p.sortino.toFixed(2)}</td>
+                <td>${p.ulcer.toFixed(2)}</td>
+            </tr>
+        `;
+    }
+
+    tbody.innerHTML = `
+        ${pRow}
+        <tr>
+            <td><span style="color: var(--accent-red); font-weight: 600;">Baseline 60/40 (SPY / IEF)</span></td>
+            <td>$${Math.round(b6040.endingValue).toLocaleString()}</td>
+            <td>${b6040.cagr.toFixed(2)}%</td>
+            <td style="color: var(--accent-red);">${b6040.maxDrawdown.toFixed(2)}%</td>
+            <td>${b6040.volatility.toFixed(2)}%</td>
+            <td>${b6040.sharpe.toFixed(2)}</td>
+            <td>${b6040.sortino.toFixed(2)}</td>
+            <td>${b6040.ulcer.toFixed(2)}</td>
+        </tr>
+        <tr>
+            <td><span style="color: var(--accent-amber); font-weight: 600;">Baseline 69/31 Global Eq (SPY / VEA)</span></td>
+            <td>$${Math.round(bGlobalEq.endingValue).toLocaleString()}</td>
+            <td>${bGlobalEq.cagr.toFixed(2)}%</td>
+            <td style="color: var(--accent-red);">${bGlobalEq.maxDrawdown.toFixed(2)}%</td>
+            <td>${bGlobalEq.volatility.toFixed(2)}%</td>
+            <td>${bGlobalEq.sharpe.toFixed(2)}</td>
+            <td>${bGlobalEq.sortino.toFixed(2)}</td>
+            <td>${bGlobalEq.ulcer.toFixed(2)}</td>
+        </tr>
+    `;
+}
+
+function renderAnnualReturnsTable(pSeries, b6040Series, bGlobalEqSeries) {
+    const tbody = document.getElementById('annual_returns_tbody');
+    if (!tbody) return;
+
+    // Group DATES by calendar year
+    const yearMap = {};
+    for (let i = 0; i < DATES.length; i++) {
+        const yr = DATES[i].substring(0, 4);
+        if (!yearMap[yr]) yearMap[yr] = [];
+        yearMap[yr].push(i);
+    }
+
+    const years = Object.keys(yearMap).sort();
+    let rowsHtml = '';
+
+    for (let yr of years) {
+        const indices = yearMap[yr];
+        // Calculate compounding return for this year
+        let pCum = 1.0, b60Cum = 1.0, bEqCum = 1.0;
+        
+        // If unallocated, portfolio return is 0
+        let pRet = 0.0;
+        if (pSeries.isAllocated) {
+            for (let idx of indices) {
+                pCum *= (1.0 + (pSeries.monthlyReturns[idx] || 0));
+            }
+            pRet = (pCum - 1.0) * 100.0;
+        }
+
+        for (let idx of indices) {
+            b60Cum *= (1.0 + (b6040Series.monthlyReturns[idx] || 0));
+            bEqCum *= (1.0 + (bGlobalEqSeries.monthlyReturns[idx] || 0));
+        }
+        const b60Ret = (b60Cum - 1.0) * 100.0;
+        const bEqRet = (bEqCum - 1.0) * 100.0;
+
+        rowsHtml += `
+            <tr>
+                <td style="font-weight: 700;">${yr}</td>
+                <td style="color: ${pRet >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 600;">${pSeries.isAllocated ? pRet.toFixed(2) + '%' : 'Unallocated'}</td>
+                <td style="color: ${b60Ret >= 0 ? 'var(--text-main)' : 'var(--accent-red)'};">${b60Ret.toFixed(2)}%</td>
+                <td style="color: ${bEqRet >= 0 ? 'var(--text-main)' : 'var(--accent-red)'};">${bEqRet.toFixed(2)}%</td>
+            </tr>
+        `;
+    }
+
+    tbody.innerHTML = rowsHtml;
+}
+
+function renderCharts(pSeries, b6040Series, bGlobalEqSeries) {
+    const isLight = currentTheme === 'light';
+    const gridColor = isLight ? '#e2e8f0' : '#1e293b';
+    const textColor = isLight ? '#475569' : '#64748b';
+    const legendColor = isLight ? '#0f172a' : '#f8fafc';
+
+    const pColor = isLight ? '#0284c7' : '#38bdf8';
+    const b6040Color = isLight ? '#dc2626' : '#f87171';
+    const bGlobalEqColor = isLight ? '#d97706' : '#fbbf24';
+
+    const step = 4;
+    const chartLabels = DATES.filter((_, idx) => idx % step === 0);
+    const pGrowth = pSeries.values.filter((_, idx) => idx % step === 0);
+    const b6040Growth = b6040Series.values.filter((_, idx) => idx % step === 0);
+    const bGlobalEqGrowth = bGlobalEqSeries.values.filter((_, idx) => idx % step === 0);
+
+    const pDD = pSeries.drawdowns.filter((_, idx) => idx % step === 0);
+    const b6040DD = b6040Series.drawdowns.filter((_, idx) => idx % step === 0);
+    const bGlobalEqDD = bGlobalEqSeries.drawdowns.filter((_, idx) => idx % step === 0);
+
+    if (growthChartInstance) growthChartInstance.destroy();
+    const ctxG = document.getElementById('growthChart').getContext('2d');
+    growthChartInstance = new Chart(ctxG, {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: pSeries.isAllocated ? 'Stacked Portfolio' : 'Stacked Portfolio (Unallocated)',
+                    data: pGrowth,
+                    borderColor: pColor,
+                    backgroundColor: isLight ? 'rgba(2, 132, 199, 0.05)' : 'rgba(56, 189, 248, 0.05)',
+                    borderWidth: 2.2,
+                    borderDash: pSeries.isAllocated ? [] : [5, 5],
+                    pointRadius: 0,
+                    tension: 0.1
+                },
+                {
+                    label: 'Baseline 60/40 (SPY / IEF)',
+                    data: b6040Growth,
+                    borderColor: b6040Color,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    tension: 0.1
+                },
+                {
+                    label: 'Baseline 69/31 Global Eq (SPY / VEA)',
+                    data: bGlobalEqGrowth,
+                    borderColor: bGlobalEqColor,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    tension: 0.1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: { ticks: { color: textColor, maxTicksLimit: 12 }, grid: { color: gridColor } },
+                y: {
+                    type: isBacktestLog ? 'logarithmic' : 'linear',
+                    ticks: {
+                        color: textColor,
+                        callback: function(v) { return '$' + Number(v).toLocaleString(); }
+                    },
+                    grid: { color: gridColor }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: legendColor, font: { size: 11, weight: '600' } } },
+                tooltip: {
+                    callbacks: {
+                        label: function(c) { return `${c.dataset.label}: $${Math.round(c.parsed.y).toLocaleString()}`; }
+                    }
+                }
+            }
+        }
+    });
+
+    if (drawdownChartInstance) drawdownChartInstance.destroy();
+    const ctxD = document.getElementById('drawdownChart').getContext('2d');
+    drawdownChartInstance = new Chart(ctxD, {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: 'Stacked DD %',
+                    data: pDD,
+                    borderColor: pColor,
+                    backgroundColor: isLight ? 'rgba(2, 132, 199, 0.15)' : 'rgba(56, 189, 248, 0.15)',
+                    fill: true,
+                    borderWidth: 1.5,
+                    pointRadius: 0
+                },
+                {
+                    label: '60/40 DD %',
+                    data: b6040DD,
+                    borderColor: b6040Color,
+                    borderWidth: 1,
+                    pointRadius: 0
+                },
+                {
+                    label: '69/31 Eq DD %',
+                    data: bGlobalEqDD,
+                    borderColor: bGlobalEqColor,
+                    borderWidth: 1,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: { ticks: { color: textColor, maxTicksLimit: 12 }, grid: { color: gridColor } },
+                y: {
+                    min: -65,
+                    max: 0,
+                    ticks: { color: textColor, callback: function(v) { return v + '%'; } },
+                    grid: { color: gridColor }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(c) { return `${c.dataset.label}: ${c.parsed.y.toFixed(2)}%`; }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// -------------------------------------------------------------
+// TAB 2: FUTURE WEALTH PLANNER (MONTE CARLO & HORIZON SOLVER)
+// -------------------------------------------------------------
+function syncInvestHorizon(val) {
+    val = Math.max(5, Math.min(150, parseInt(val) || 40));
+    document.getElementById('f_horizon_slider').value = val;
+    document.getElementById('f_horizon_num').value = val;
+    document.getElementById('f_horizon_label').innerText = `${val} Years (2026–${2026 + val})`;
+
+    const contribSlider = document.getElementById('f_contrib_horizon_slider');
+    const contribNum = document.getElementById('f_contrib_horizon_num');
+    contribSlider.max = val;
+    contribNum.max = val;
+
+    let curContrib = parseInt(contribNum.value) || 0;
+    if (curContrib > val) {
+        contribSlider.value = val;
+        contribNum.value = val;
+    }
+    updateContribHorizonLabels();
+    runFutureSimulation();
+}
+
+function syncContribHorizon(val) {
+    const maxVal = parseInt(document.getElementById('f_horizon_num').value) || 150;
+    val = Math.max(0, Math.min(maxVal, parseInt(val) || 0));
+    document.getElementById('f_contrib_horizon_slider').value = val;
+    document.getElementById('f_contrib_horizon_num').value = val;
+    updateContribHorizonLabels();
+    runFutureSimulation();
+}
+
+function updateContribHorizonLabels() {
+    const investYears = parseInt(document.getElementById('f_horizon_num').value) || 40;
+    const contribYears = parseInt(document.getElementById('f_contrib_horizon_num').value) || 0;
+
+    const contribLabel = document.getElementById('f_contrib_horizon_label');
+    const withdrawLabelFixed = document.getElementById('f_withdraw_start_label_fixed');
+    const withdrawLabelPct = document.getElementById('f_withdraw_start_label_pct');
+
+    if (contribYears === 0) {
+        contribLabel.innerText = "0 Years (No ongoing contributions)";
+    } else {
+        contribLabel.innerText = `Years 1–${contribYears} (2026–${2026 + contribYears})`;
+    }
+
+    let statusText = "";
+    if (contribYears >= investYears) {
+        statusText = "No withdrawals (Contributions until horizon end)";
+    } else if (contribYears === 0) {
+        statusText = "Active from Year 1 (Starts 2026)";
+    } else {
+        statusText = `Starts in Year ${contribYears + 1} (${2026 + contribYears})`;
+    }
+
+    if (withdrawLabelFixed) withdrawLabelFixed.innerText = statusText;
+    if (withdrawLabelPct) withdrawLabelPct.innerText = statusText;
+}
+
+function handleWithdrawalModeChange() {
+    const mode = document.getElementById('f_withdraw_mode').value;
+    const rowFixed = document.getElementById('row_withdraw_fixed');
+    const rowPct = document.getElementById('row_withdraw_pct');
+    const rowGrowth = document.getElementById('row_withdraw_growth');
+    const growthSub = document.getElementById('f_withdraw_growth_sub');
+    const growthSelect = document.getElementById('f_withdraw_escalation');
+
+    if (mode === 'fixed') {
+        rowFixed.style.display = 'flex';
+        rowPct.style.display = 'none';
+        rowGrowth.classList.remove('disabled-row');
+        growthSelect.disabled = false;
+        growthSub.innerText = "Annual Inflation Escalation";
+    } else {
+        rowFixed.style.display = 'none';
+        rowPct.style.display = 'flex';
+        rowGrowth.classList.add('disabled-row');
+        growthSelect.disabled = true;
+        growthSub.innerText = "N/A for % withdrawals (scales with portfolio)";
+    }
+    runFutureSimulation();
+}
+
+function handleWithdrawPctChange() {
+    const sel = document.getElementById('f_withdraw_pct_select');
+    const customInput = document.getElementById('f_custom_withdraw_pct');
+    customInput.style.display = sel.value === 'custom' ? 'inline-block' : 'none';
+    runFutureSimulation();
+}
+
+function handleEscalationChange(type) {
+    if (type === 'contrib') {
+        const sel = document.getElementById('f_contrib_escalation');
+        const customInput = document.getElementById('f_custom_contrib');
+        customInput.style.display = sel.value === 'custom' ? 'inline-block' : 'none';
+    } else if (type === 'withdraw') {
+        const sel = document.getElementById('f_withdraw_escalation');
+        const customInput = document.getElementById('f_custom_withdraw');
+        customInput.style.display = sel.value === 'custom' ? 'inline-block' : 'none';
+    }
+    runFutureSimulation();
+}
+
+function syncFuture(ticker, val) {
+    val = Math.max(0, Math.min(100, parseInt(val) || 0));
+    const slider = document.getElementById(`f_${ticker}_slider`);
+    const num = document.getElementById(`f_${ticker}_num`);
+    if (slider) slider.value = val;
+    if (num) num.value = val;
+    futureWeights[ticker] = val;
+    runFutureSimulation();
+}
+
+function copyAllocationFromBacktest() {
+    TICKERS.forEach(t => {
+        futureWeights[t] = weights[t] || 0;
+        const slider = document.getElementById(`f_${t}_slider`);
+        const num = document.getElementById(`f_${t}_num`);
+        if (slider) slider.value = futureWeights[t];
+        if (num) num.value = futureWeights[t];
+    });
+    runFutureSimulation();
+}
+
+function applyFuturePreset(preset) {
+    TICKERS.forEach(t => futureWeights[t] = 0);
+
+    if (preset === 'min_vol') {
+        futureWeights.rsbt = 31; futureWeights.rsby = 46; futureWeights.rssb = 19; futureWeights.rssy = 4;
+    } else if (preset === 'max_sharpe') {
+        futureWeights.rsst = 6; futureWeights.rsbt = 34; futureWeights.rsby = 23; futureWeights.rssb = 35; futureWeights.rssy = 2;
+    } else if (preset === 'mod_growth') {
+        futureWeights.rsst = 11; futureWeights.rsbt = 38; futureWeights.rsby = 2; futureWeights.rssb = 49;
+    } else if (preset === 'agg_growth') {
+        futureWeights.rsst = 31; futureWeights.rsit = 9; futureWeights.rsbt = 17; futureWeights.rssb = 43;
+    } else if (preset === 'more_agg') {
+        futureWeights.rsst = 59; futureWeights.rsit = 26; futureWeights.rsbt = 15;
+    } else if (preset === 'max_terminal') {
+        futureWeights.rsst = 69; futureWeights.rsit = 31;
+    }
+
+    TICKERS.forEach(t => {
+        const slider = document.getElementById(`f_${t}_slider`);
+        const num = document.getElementById(`f_${t}_num`);
+        if (slider) slider.value = futureWeights[t];
+        if (num) num.value = futureWeights[t];
+    });
+
+    runFutureSimulation();
+}
+
+function getPortfolioHistoricalReturns(w) {
+    const sumW = Object.values(w).reduce((a, b) => a + b, 0);
+    if (sumW === 0) return new Array(DATES.length).fill(0);
+
+    const nw = {};
+    for (let k of TICKERS) nw[k] = (w[k] || 0) / sumW;
+
+    const hist = [];
+    for (let i = 0; i < DATES.length; i++) {
+        const r_rsst = SPY_M[i] + TREND_M[i] - (FEES.rsst / 12);
+        const r_rsit = VEA_M[i] + TREND_M[i] - (FEES.rsit / 12);
+        const r_rsbt = IEF_M[i] + TREND_M[i] - (FEES.rsbt / 12);
+
+        const r_rssy = SPY_M[i] + CARRY_M[i] - (FEES.rssy / 12);
+        const r_rsby = IEF_M[i] + CARRY_M[i] - (FEES.rsby / 12);
+
+        const r_rssb = (0.62 * SPY_M[i] + 0.38 * VEA_M[i]) + IEF_M[i] - (FEES.rssb / 12);
+
+        const r_spy = SPY_M[i] - (FEES.spy / 12);
+        const r_vea = VEA_M[i] - (FEES.vea / 12);
+        const r_ief = IEF_M[i] - (FEES.ief / 12);
+        const r_cash = CASH_M[i];
+
+        const r_total = (nw.rsst * r_rsst) +
+                        (nw.rsit * r_rsit) +
+                        (nw.rsbt * r_rsbt) +
+                        (nw.rssy * r_rssy) +
+                        (nw.rsby * r_rsby) +
+                        (nw.rssb * r_rssb) +
+                        (nw.spy * r_spy) +
+                        (nw.vea * r_vea) +
+                        (nw.ief * r_ief) +
+                        (nw.cash * r_cash);
+        hist.push(r_total);
+    }
+    return hist;
+}
+
+// Robust Horner-discounted Bisection solver for Internal Rate of Return (IRR / MWRR)
+function calculateMWRR(cashFlows) {
+    if (!cashFlows || cashFlows.length < 2) return 0;
+
+    let hasPositive = false;
+    let hasNegative = false;
+    for (let cf of cashFlows) {
+        if (cf > 0.01) hasPositive = true;
+        if (cf < -0.01) hasNegative = true;
+    }
+    if (!hasPositive || !hasNegative) return 0;
+
+    function hornerNpv(r) {
+        const disc = 1.0 / (1.0 + r);
+        let val = 0.0;
+        for (let t = cashFlows.length - 1; t >= 0; t--) {
+            val = cashFlows[t] + val * disc;
+        }
+        return val;
+    }
+
+    let low = -0.10;
+    let high = 0.40;
+
+    let fLow = hornerNpv(low);
+    let fHigh = hornerNpv(high);
+
+    if (fLow * fHigh > 0) {
+        if (fLow < 0) {
+            low = -0.25;
+            fLow = hornerNpv(low);
+        } else {
+            high = 0.80;
+            fHigh = hornerNpv(high);
+        }
+    }
+
+    if (fLow * fHigh > 0) {
+        return fLow < 0 ? -50.0 : 25.0;
+    }
+
+    for (let iter = 0; iter < 50; iter++) {
+        const mid = 0.5 * (low + high);
+        const fMid = hornerNpv(mid);
+
+        if (Math.abs(fMid) < 0.01 || (high - low) < 1e-6) {
+            low = mid;
+            break;
+        }
+        if (fMid * fLow > 0) {
+            low = mid;
+            fLow = fMid;
+        } else {
+            high = mid;
+            fHigh = fMid;
+        }
+    }
+
+    const rMonthly = 0.5 * (low + high);
+    const rAnnual = (Math.pow(1.0 + Math.max(-0.95, rMonthly), 12) - 1.0) * 100.0;
+    return isFinite(rAnnual) ? rAnnual : 0;
+}
+
+let lastFutureScenarioStats = null;
+let lastInvestYears = 40;
+
+function runFutureSimulation() {
+    if (!DATES.length) return;
+
+    // Financial Inputs
+    const startBal = Math.max(0, parseFloat(document.getElementById('f_start_bal').value) || 0);
+    const monthlyContrib0 = Math.max(0, parseFloat(document.getElementById('f_monthly_contrib').value) || 0);
+
+    const contribSel = document.getElementById('f_contrib_escalation');
+    let annualContribEscalation = 0.035;
+    if (contribSel.value === 'custom') {
+        annualContribEscalation = Math.max(0, (parseFloat(document.getElementById('f_custom_contrib').value) || 0) / 100);
+    } else {
+        annualContribEscalation = parseFloat(contribSel.value) || 0;
+    }
+
+    const investYears = Math.max(5, Math.min(150, parseInt(document.getElementById('f_horizon_num').value) || 40));
+    lastInvestYears = investYears;
+    const investMonths = investYears * 12;
+
+    const contribYears = Math.max(0, Math.min(investYears, parseInt(document.getElementById('f_contrib_horizon_num').value) || 0));
+    const contribMonths = contribYears * 12;
+
+    // Withdrawal Mode & Rate
+    const withdrawMode = document.getElementById('f_withdraw_mode').value;
+    const monthlyWithdraw0 = Math.max(0, parseFloat(document.getElementById('f_monthly_withdraw').value) || 0);
+
+    const withdrawPctSel = document.getElementById('f_withdraw_pct_select');
+    let annualWithdrawPct = 0.035;
+    if (withdrawPctSel.value === 'custom') {
+        annualWithdrawPct = Math.max(0.001, (parseFloat(document.getElementById('f_custom_withdraw_pct').value) || 3.5) / 100);
+    } else {
+        annualWithdrawPct = parseFloat(withdrawPctSel.value) || 0.035;
+    }
+
+    const withdrawGrowthSel = document.getElementById('f_withdraw_escalation');
+    let annualWithdrawEscalation = 0.025;
+    if (withdrawGrowthSel.value === 'custom') {
+        annualWithdrawEscalation = Math.max(0, (parseFloat(document.getElementById('f_custom_withdraw').value) || 0) / 100);
+    } else {
+        annualWithdrawEscalation = parseFloat(withdrawGrowthSel.value) || 0;
+    }
+
+    const cmaModel = document.getElementById('f_cma_model').value;
+
+    // Weight and Exposure Breakdown
+    const totalW = Object.values(futureWeights).reduce((a, b) => a + b, 0);
+    const denom = totalW || 1;
+
+    document.getElementById('f_total_weight_display').innerText = `${totalW}%`;
+    document.getElementById('f_total_weight_display').style.color = totalW === 100 ? 'var(--accent-green)' : (totalW === 0 ? 'var(--text-muted)' : 'var(--accent-red)');
+
+    const usEq = (futureWeights.rsst || 0) + (futureWeights.spy || 0) + (futureWeights.rssy || 0) + ((futureWeights.rssb || 0) * 0.62);
+    const intlEq = (futureWeights.rsit || 0) + (futureWeights.vea || 0) + ((futureWeights.rssb || 0) * 0.38);
+    const eqExp = ((usEq + intlEq) / denom) * 100;
+    const bndExp = (((futureWeights.rsbt || 0) + (futureWeights.ief || 0) + (futureWeights.rsby || 0) + (futureWeights.rssb || 0)) / denom) * 100;
+    const cashExp = ((futureWeights.cash || 0) / denom) * 100;
+
+    const trendExp = (((futureWeights.rsst || 0) + (futureWeights.rsit || 0) + (futureWeights.rsbt || 0)) / denom) * 100;
+    const carryExp = (((futureWeights.rssy || 0) + (futureWeights.rsby || 0)) / denom) * 100;
+    const totalOverlay = trendExp + carryExp;
+    const grossExp = eqExp + bndExp + cashExp + totalOverlay;
+
+    let weightedFee = 0;
+    for (let k of TICKERS) weightedFee += ((futureWeights[k] || 0) / denom) * (FEES[k] || 0);
+
+    document.getElementById('f_collateral_split_display').innerText = totalW === 0 ? '0% Allocated' : `${Math.round(eqExp)}% Eq / ${Math.round(bndExp)}% Bnd`;
+    document.getElementById('f_overlay_split_display').innerText = totalW === 0 ? '0% Allocated' : (totalOverlay < 0.5 ? 'None (0%)' : `${Math.round(trendExp)}% Tr / ${Math.round(carryExp)}% Cy`);
+    document.getElementById('f_gross_exp_display').innerText = totalW === 0 ? '0%' : `${Math.round(grossExp)}%`;
+    document.getElementById('f_fee_display').innerText = `${(weightedFee * 100).toFixed(2)}%`;
+
+    // Raw historical returns
+    const rawHistReturns = getPortfolioHistoricalReturns(futureWeights);
+    const N_hist = rawHistReturns.length;
+
+    // Expected return calibration
+    let histCum = 1.0;
+    for (let r of rawHistReturns) histCum *= (1.0 + r);
+    const histCAGR = Math.pow(histCum, 12.0 / N_hist) - 1.0;
+
+// Separate funded collateral from unfunded overlay exposures:
+    const rssbWeight = (futureWeights.rssb || 0) / denom;
+    const fundedBndExp = (((futureWeights.rsbt || 0) + (futureWeights.ief || 0) + (futureWeights.rsby || 0)) / denom) * 100;
+    const bondFuturesOverlayExp = rssbWeight * 100; // 100% Treasury futures overlay inside RSSB
+
+    let forwardTargetCAGR = histCAGR;
+    if (cmaModel === 'cma_moderate') {
+        // Forward CMAs (Moderate):
+        // Funded Collateral: Global Equities ~7.0%, Physical Bonds ~4.0%, Cash ~3.25%
+        // Unfunded Overlays (Excess over Cash): Trend ~3.0%, Carry ~2.0%, Bond Futures Ladder ~0.75%
+        forwardTargetCAGR = ((eqExp / 100) * 0.070) +
+                            ((fundedBndExp / 100) * 0.040) +
+                            ((cashExp / 100) * 0.0325) +
+                            ((trendExp / 100) * 0.030) +
+                            ((carryExp / 100) * 0.020) +
+                            ((bondFuturesOverlayExp / 100) * 0.0075) -
+                            weightedFee;
+    } else if (cmaModel === 'cma_conservative') {
+        // Forward CMAs (Conservative):
+        // Funded Collateral: Global Equities ~6.0%, Physical Bonds ~3.5%, Cash ~2.75%
+        // Unfunded Overlays (Excess over Cash): Trend ~2.2%, Carry ~1.5%, Bond Futures Ladder ~0.50%
+        forwardTargetCAGR = ((eqExp / 100) * 0.060) +
+                            ((fundedBndExp / 100) * 0.035) +
+                            ((cashExp / 100) * 0.0275) +
+                            ((trendExp / 100) * 0.022) +
+                            ((carryExp / 100) * 0.015) +
+                            ((bondFuturesOverlayExp / 100) * 0.0050) -
+                            weightedFee;
+    }
+
+    const deltaMonthly = (forwardTargetCAGR - histCAGR) / 12.0;
+    const calibratedHistReturns = new Float64Array(N_hist);
+    for (let i = 0; i < N_hist; i++) {
+        calibratedHistReturns[i] = rawHistReturns[i] + deltaMonthly;
+    }
+
+    // Dates
+    const futureDates = ['2026-09'];
+    let curY = 2026, curM = 9;
+    for (let m = 1; m <= investMonths; m++) {
+        curM++;
+        if (curM > 12) { curM = 1; curY++; }
+        futureDates.push(`${curY}-${String(curM).padStart(2, '0')}`);
+    }
+
+    // Precalculate contribution schedule
+    const monthlyPlannedContrib = new Float64Array(investMonths);
+    let curContribRate = monthlyContrib0;
+    for (let m = 0; m < investMonths; m++) {
+        if (m < contribMonths) {
+            if (m > 0 && m % 12 === 0) curContribRate *= (1.0 + annualContribEscalation);
+            monthlyPlannedContrib[m] = curContribRate;
+        } else {
+            monthlyPlannedContrib[m] = 0.0;
+        }
+    }
+
+    // Precalculate fixed dollar withdrawal schedule
+    const monthlyPlannedWithdrawFixed = new Float64Array(investMonths);
+    let curWithdrawRate = monthlyWithdraw0;
+    for (let m = 0; m < investMonths; m++) {
+        if (m >= contribMonths) {
+            const mInWithdraw = m - contribMonths;
+            if (mInWithdraw > 0 && mInWithdraw % 12 === 0) curWithdrawRate *= (1.0 + annualWithdrawEscalation);
+            monthlyPlannedWithdrawFixed[m] = curWithdrawRate;
+        } else {
+            monthlyPlannedWithdrawFixed[m] = 0.0;
+        }
+    }
+
+// Define 5 Coherent Macro Regimes with realistic, non-apocalyptic bounds
+    const scenarioConfigs = [
+        { 
+            key: 'p95', 
+            name: 'Prolonged Bull Market (95th %ile)', 
+            driftAdj: +0.018, // Generational secular tailwind
+            recoveryBoost: 0.012,
+            color: '#06b6d4', 
+            lightColor: '#0891b2' 
+        },
+        { 
+            key: 'p75', 
+            name: 'Bull Market (75th %ile)', 
+            driftAdj: +0.008, 
+            recoveryBoost: 0.006,
+            color: '#10b981', 
+            lightColor: '#059669' 
+        },
+        { 
+            key: 'p50', 
+            name: 'Central Estimate (50th %ile Median)', 
+            driftAdj: 0.000, // Baseline Institutional CMA
+            recoveryBoost: 0.000,
+            color: '#38bdf8', 
+            lightColor: '#0284c7' 
+        },
+        { 
+            key: 'p25', 
+            name: 'Bear Market (25th %ile)', 
+            driftAdj: -0.008, 
+            recoveryBoost: -0.004,
+            color: '#f59e0b', 
+            lightColor: '#d97706' 
+        },
+        { 
+            key: 'p5', 
+            name: 'Prolonged Bear Market (5th %ile)', 
+            driftAdj: -0.016, // Sluggish secular drag, but realistic
+            recoveryBoost: -0.008,
+            color: '#ef4444', 
+            lightColor: '#dc2626' 
+        }
+    ];
+
+    // Build synchronized market sequence from historical bootstrap
+    const BLOCK_SIZE = 6;
+    const numBlocks = Math.ceil(investMonths / BLOCK_SIZE);
+    const sharedBaseReturns = new Float64Array(investMonths);
+
+	let mIdx = 0;
+    for (let b = 0; b < numBlocks && mIdx < investMonths; b++) {
+        const startIdx = Math.floor(Math.random() * (N_hist - BLOCK_SIZE + 1));
+        for (let k = 0; k < BLOCK_SIZE && mIdx < investMonths; k++) {
+            sharedBaseReturns[mIdx] = calibratedHistReturns[startIdx + k];
+            mIdx++;
+        }
+    }
+
+    // Dynamic Calibration Lock: Pin sampled sequence directly to the target CMA
+    let sampledCum = 1.0;
+    for (let i = 0; i < investMonths; i++) {
+        sampledCum *= (1.0 + sharedBaseReturns[i]);
+    }
+    const sampledCAGR = Math.pow(Math.max(1e-6, sampledCum), 12.0 / investMonths) - 1.0;
+    const sampleCalibrationDelta = (forwardTargetCAGR - sampledCAGR) / 12.0;
+
+    for (let i = 0; i < investMonths; i++) {
+        sharedBaseReturns[i] += sampleCalibrationDelta;
+    }
+
+    // Simulate each scenario across the synchronized timeline with cyclical mean-reversion
+    const scenarioStats = scenarioConfigs.map(sc => {
+        const pathW = new Float64Array(investMonths + 1);
+        const pathDD = new Float64Array(investMonths + 1);
+        const returnSeries = new Float64Array(investMonths);
+        const annualReturns = new Float64Array(investYears);
+
+        pathW[0] = startBal;
+        pathDD[0] = 0.0;
+
+        let curWealth = startBal;
+        let peak = startBal;
+        let totC = startBal;
+        let totW = 0.0;
+
+        for (let m = 0; m < investMonths; m++) {
+            // Cyclical macroeconomic waves: 12-year business cycle modulation
+            const cyclePhase = Math.sin((2 * Math.PI * m) / (12 * 12));
+            const cycleAdj = (sc.driftAdj * 0.5) + (sc.driftAdj * 0.5 * cyclePhase);
+
+            // Rebound elasticity: stronger recovery bounce during market drawdowns
+            const inDrawdown = curWealth < peak;
+            const recoveryAdj = inDrawdown ? (sc.recoveryBoost / 12.0) : 0.0;
+
+            const r = sharedBaseReturns[m] + (cycleAdj / 12.0) + recoveryAdj;
+            returnSeries[m] = r;
+
+            if (m < contribMonths) {
+                const c = monthlyPlannedContrib[m];
+                totC += c;
+                curWealth = (curWealth + c) * (1.0 + r);
+            } else {
+                let wTarget = 0.0;
+                if (withdrawMode === 'fixed') {
+                    wTarget = monthlyPlannedWithdrawFixed[m];
+                } else {
+                    wTarget = Math.max(0.0, curWealth) * (annualWithdrawPct / 12.0);
+                }
+
+                const wActual = Math.min(wTarget, Math.max(0.0, curWealth));
+                totW += wActual;
+                const rem = curWealth - wActual;
+                curWealth = rem > 0 ? rem * (1.0 + r) : 0.0;
+            }
+
+            pathW[m + 1] = curWealth;
+            if (curWealth > peak) peak = curWealth;
+            pathDD[m + 1] = peak > 0 ? ((curWealth - peak) / peak) * 100.0 : -100.0;
+        }
+
+        // Calendar-year compounding
+        for (let y = 0; y < investYears; y++) {
+            let cum = 1.0;
+            const startM = y * 12;
+            const endM = Math.min((y + 1) * 12, investMonths);
+            for (let m = startM; m < endM; m++) {
+                cum *= (1.0 + returnSeries[m]);
+            }
+            annualReturns[y] = (cum - 1.0) * 100.0;
+        }
+
+        let minDD = 0;
+        for (let dd of pathDD) { if (dd < minDD) minDD = dd; }
+
+        const cfs = [-startBal];
+        for (let m = 0; m < investMonths; m++) {
+            if (m < contribMonths) {
+                cfs.push(-monthlyPlannedContrib[m]);
+            } else {
+                let actualW = 0.0;
+                const prevBal = pathW[m];
+                if (withdrawMode === 'fixed') {
+                    actualW = Math.min(monthlyPlannedWithdrawFixed[m], Math.max(0.0, prevBal));
+                } else {
+                    actualW = Math.max(0.0, prevBal) * (annualWithdrawPct / 12.0);
+                }
+                cfs.push(actualW);
+            }
+        }
+        cfs[cfs.length - 1] += curWealth;
+
+        const mwrr = calculateMWRR(cfs);
+
+        return {
+            name: sc.name,
+            endBalance: curWealth,
+            totalContrib: totC,
+            totalWithdraw: totW,
+            netGain: curWealth + totW - totC,
+            mwrr: mwrr,
+            maxDrawdown: minDD,
+            wealthSeries: pathW,
+            ddSeries: pathDD,
+            annualReturns: annualReturns,
+            color: currentTheme === 'light' ? sc.lightColor : sc.color
+        };
+    });
+
+    lastFutureScenarioStats = scenarioStats;
+
+    // Cost basis series: Net Capital Injected
+    const costBasisSeries = new Float64Array(investMonths + 1);
+    costBasisSeries[0] = startBal;
+    let runC = startBal;
+    let runW = 0.0;
+    const medianWSeries = scenarioStats.find(s => s.name.includes('Median')).wealthSeries;
+    for (let m = 0; m < investMonths; m++) {
+        if (m < contribMonths) {
+            runC += monthlyPlannedContrib[m];
+        } else {
+            if (withdrawMode === 'fixed') {
+                runW += monthlyPlannedWithdrawFixed[m];
+            } else {
+                runW += Math.max(0, medianWSeries[m]) * (annualWithdrawPct / 12.0);
+            }
+        }
+        costBasisSeries[m + 1] = Math.max(0, runC - runW);
+    }
+    renderFutureTable(scenarioStats);
+    renderFutureAnnualReturnsTable(scenarioStats, investYears);
+    renderFutureCharts(futureDates, scenarioStats, costBasisSeries);
+}
+
+function renderFutureTable(stats) {
+    const tbody = document.getElementById('future_stats_tbody');
+    if (!tbody) return;
+
+    let rowsHtml = stats.map(s => `
+        <tr>
+            <td><strong style="color: ${s.color};">${s.name}</strong></td>
+            <td style="font-weight: 700; color: var(--text-main);">$${Math.round(s.endBalance).toLocaleString()}</td>
+            <td>$${Math.round(s.totalContrib).toLocaleString()}</td>
+            <td>$${Math.round(s.totalWithdraw).toLocaleString()}</td>
+            <td style="color: ${s.netGain >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 600;">$${Math.round(s.netGain).toLocaleString()}</td>
+            <td style="font-weight: 700; color: ${s.mwrr >= 0 ? 'var(--text-main)' : 'var(--accent-red)'};">${s.mwrr.toFixed(2)}%</td>
+            <td style="color: var(--accent-red);">${s.maxDrawdown.toFixed(2)}%</td>
+        </tr>
+    `).join('');
+
+    tbody.innerHTML = rowsHtml;
+}
+
+function renderFutureAnnualReturnsTable(stats, investYears) {
+    const tbody = document.getElementById('future_annual_returns_tbody');
+    if (!tbody || !stats || stats.length === 0) return;
+
+    let rowsHtml = '';
+    const startYear = 2026;
+
+    for (let yrIdx = 0; yrIdx < investYears; yrIdx++) {
+        const calendarYear = startYear + yrIdx;
+        let rowStr = `<td style="font-weight: 700;">${calendarYear}</td>`;
+
+        for (let s of stats) {
+            const yrRet = s.annualReturns ? s.annualReturns[yrIdx] : 0.0;
+            rowStr += `<td style="color: ${yrRet >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 600;">${yrRet.toFixed(2)}%</td>`;
+        }
+
+        rowsHtml += `<tr>${rowStr}</tr>`;
+    }
+
+    tbody.innerHTML = rowsHtml;
+}
+
+function renderFutureCharts(futureDates, stats, costBasisSeries) {
+    const isLight = currentTheme === 'light';
+    const gridColor = isLight ? '#e2e8f0' : '#1e293b';
+    const textColor = isLight ? '#475569' : '#64748b';
+    const legendColor = isLight ? '#0f172a' : '#f8fafc';
+
+    const step = Math.max(1, Math.floor(futureDates.length / 80));
+    const sampledDates = futureDates.filter((_, idx) => idx % step === 0);
+    const sampledCostBasis = Array.from(costBasisSeries).filter((_, idx) => idx % step === 0);
+
+    const growthDatasets = stats.map(s => ({
+        label: s.name,
+        data: Array.from(s.wealthSeries).filter((_, idx) => idx % step === 0),
+        borderColor: s.color,
+        backgroundColor: 'transparent',
+        borderWidth: s.name.includes('Median') ? 2.8 : 1.8,
+        pointRadius: 0,
+        tension: 0.1
+    }));
+
+    growthDatasets.push({
+        label: 'Net Cost Basis (Contributions - Withdrawals)',
+        data: sampledCostBasis,
+        borderColor: isLight ? '#64748b' : '#94a3b8',
+        borderDash: [5, 5],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.0
+    });
+
+    if (futureGrowthChartInstance) futureGrowthChartInstance.destroy();
+    const ctxG = document.getElementById('futureGrowthChart').getContext('2d');
+    futureGrowthChartInstance = new Chart(ctxG, {
+        type: 'line',
+        data: {
+            labels: sampledDates,
+            datasets: growthDatasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: { ticks: { color: textColor, maxTicksLimit: 12 }, grid: { color: gridColor } },
+                y: {
+                    type: isFutureLog ? 'logarithmic' : 'linear',
+                    ticks: {
+                        color: textColor,
+                        callback: function(v) { return '$' + Number(v).toLocaleString(); }
+                    },
+                    grid: { color: gridColor }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: legendColor, font: { size: 10.5, weight: '600' } } },
+                tooltip: {
+                    callbacks: {
+                        label: function(c) { return `${c.dataset.label}: $${Math.round(c.parsed.y).toLocaleString()}`; }
+                    }
+                }
+            }
+        }
+    });
+
+    const ddDatasets = stats.map(s => ({
+        label: s.name,
+        data: Array.from(s.ddSeries).filter((_, idx) => idx % step === 0),
+        borderColor: s.color,
+        borderWidth: s.name.includes('Median') ? 2.0 : 1.2,
+        pointRadius: 0,
+        fill: false
+    }));
+
+    if (futureDrawdownChartInstance) futureDrawdownChartInstance.destroy();
+    const ctxD = document.getElementById('futureDrawdownChart').getContext('2d');
+    futureDrawdownChartInstance = new Chart(ctxD, {
+        type: 'line',
+        data: {
+            labels: sampledDates,
+            datasets: ddDatasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: { ticks: { color: textColor, maxTicksLimit: 12 }, grid: { color: gridColor } },
+                y: {
+                    min: -100,
+                    max: 0,
+                    ticks: { color: textColor, callback: function(v) { return v + '%'; } },
+                    grid: { color: gridColor }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(c) { return `${c.dataset.label}: ${c.parsed.y.toFixed(2)}%`; }
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+</body>
+</html>
